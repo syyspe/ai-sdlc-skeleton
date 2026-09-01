@@ -82,7 +82,9 @@ remote for the half a local hook can't cover — see step 8 below.
    `intent/<slug>.md` on a new branch with you.
 6. *(Optional)* set the `ANTHROPIC_API_KEY` secret on the new GitHub repo
    (Settings → Secrets → Actions) so `.github/workflows/agent-evals.yml`
-   and the PR review workflow can run.
+   and the PR review workflow can run. Without it both skip cleanly and
+   explain themselves in the run summary — your PRs stay green, they just
+   don't get automated review until you opt in.
 7. *(Optional)* **Trim or extend `.claude/skills/`** for anything
    project-specific beyond what bootstrap covers — org brand, compliance,
    or UX policies.
