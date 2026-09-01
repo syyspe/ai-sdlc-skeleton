@@ -20,13 +20,15 @@ intent.md  →  spec.md  →  plan.md  →  PR + tests  →  deploy  →  monito
 1. On GitHub, click **Use this template** on this repo → create your new
    repo (clean history, no link back to this skeleton).
 2. Clone it locally.
-3. Run `claude` in it. An unconfigured clone is detected automatically —
-   Claude starts setup right away, one question at a time (project name,
-   purpose, tech stack, commands). For a known stack (Next.js, Django,
-   React+Vite, plain Node/TS) it offers to scaffold the project too, then
-   fills in every `<placeholder>` across `CLAUDE.md`, `README.md`,
-   `REVIEW.md`, and `.claude/hooks/`. Re-run any time with `/bootstrap`
-   (e.g. if the stack changes later).
+3. Run `claude` in it, then run **`/bootstrap`**. Setup starts right away,
+   one question at a time (project name, purpose, tech stack, commands).
+   For a known stack (Next.js, Django, React+Vite, plain Node/TS) it
+   offers to scaffold the project too, then fills in every `<placeholder>`
+   across `CLAUDE.md`, `README.md`, `REVIEW.md`, and `.claude/hooks/`. If
+   you forget, any first message will still trigger it — an unconfigured
+   clone is detected automatically and setup takes over before anything
+   else — but `/bootstrap` is the reliable way to kick it off. Re-run any
+   time (e.g. if the stack changes later).
 4. *(Optional)* set the `ANTHROPIC_API_KEY` secret on the new GitHub repo
    (Settings → Secrets → Actions) so `.github/workflows/agent-evals.yml`
    and the PR review workflow can run.
