@@ -50,7 +50,12 @@ Expected healthy output for tests: `<e.g. "N passed, 0 failed">`
 ## Working agreement
 
 - Nothing gets implemented without a plan first — see `plans/README.md`.
-- Skills in `.claude/skills/` encode policy that applies automatically; read
-  them if you're unsure why a change was flagged.
+- Skills in `.claude/skills/` encode policy — check the relevant one
+  before starting work that matches its trigger conditions; don't wait to
+  be flagged. In particular: `simple-code` applies to every function and
+  file you touch while writing or editing code, unconditionally — its
+  limits and no-cleverness/no-defensive-code rules are active from the
+  first line, not a checklist for after `verifier` or review catches
+  something.
 - Hooks in `.claude/hooks/` are hard guardrails, not suggestions — if one
   blocks you, that's a signal to ask a human, not to work around it.
