@@ -199,38 +199,68 @@ content for these to seem thorough:
   copies one of them for the first initiative, but the templates stay
   exactly as they are
 
-## Step 9 — write the marker, commit, and summarise
+## Step 9 — write the marker, and open the setup PR
 
 1. Write `.claude/.bootstrapped` with the captured project name, stack,
    verified versions, and today's date (plain text — a marker
    `session-start-check.sh` and `CLAUDE.md`'s Setup section look for, not
    a config file other tooling reads).
-2. **Commit the whole setup on the default branch**, marker included —
-   `git add -A && git commit`, something like "Bootstrap <project>:
-   <stack>". Two reasons this can't be skipped:
-   - The marker has to be *tracked*, not just present. `git worktree add`
-     checks out tracked files only, so an uncommitted marker means every
-     parallel worktree looks unconfigured and tries to re-run bootstrap.
-   - Step 10 branches immediately. Uncommitted setup would ride along onto
-     the first feature branch instead of sitting on the default branch
-     where it belongs.
+2. Report a short summary *before* committing, so they can object while
+   it's cheap: what was scaffolded/installed (with the verified actual
+   versions), what was filled in, and what's still deferred (any
+   placeholder you couldn't infer, plus the standing note about
+   `bands.yaml`/`evals`).
+3. **Put the setup on a branch and open a PR.** The default branch is
+   PR-only — `default-branch-guard.sh` blocks a direct push, and setup is
+   not an exception to the rule it exists to enforce.
 
-   If the scaffold pulled in dependencies, check that `.gitignore` covers
-   them (`node_modules/`, `.venv/`) before staging — the repo's existing
+   ```
+   git checkout -b bootstrap-setup
+   git add -A && git commit -m "Bootstrap <project>: <stack>"
+   git push -u origin bootstrap-setup
+   gh pr create --fill
+   ```
+
+   If the scaffold pulled in dependencies, check `.gitignore` covers them
+   (`node_modules/`, `.venv/`) before staging — the repo's existing
    ignores plus whatever the scaffold appended should already handle it.
 
-   On a *re-run* (`/bootstrap` after a stack change), commit on whatever
-   branch they're on and skip Step 10 — they're already in the loop, and
-   this is just a config change like any other.
-3. Report a short summary: what was scaffolded/installed (with the
-   verified actual versions), what was filled in, and what's still
-   deferred (any placeholder you couldn't infer, plus the standing note
-   about `bands.yaml`/`evals`).
+   No `gh`, or it isn't authenticated? Push the branch anyway and give them
+   the compare URL to open the PR in a browser
+   (`https://github.com/<owner>/<repo>/compare/bootstrap-setup?expand=1`).
+   No remote at all? Commit on the branch, say the push is deferred, and
+   move on — a local-only repo is a fine place to start.
+
+4. **Stop and wait for the merge.** Tell them plainly: merge that PR
+   (`gh pr merge --squash --delete-branch` works from here), then say so,
+   and you'll start their first piece of work.
+
+   This isn't ceremony. Two things depend on setup being *on the default
+   branch* before any feature branch forks off it:
+   - `.claude/.bootstrapped` has to be tracked and reachable from the
+     default branch. `git worktree add` checks out tracked files only, so
+     otherwise every parallel worktree looks unconfigured and re-runs
+     bootstrap.
+   - Step 10 branches immediately. Fork before the merge and the first
+     feature PR carries the entire scaffold in its diff.
+
+   It also means the first thing they ever do in the repo is exercise the
+   PR gate the whole skeleton is built around.
+
+5. Once they confirm the merge: `git checkout <default-branch> && git pull`,
+   verify `.claude/.bootstrapped` is present and tracked
+   (`git ls-files --error-unmatch .claude/.bootstrapped`), then go to Step 10.
+
+**On a re-run** (`/bootstrap` after a stack change): same branch-and-PR
+shape, but name the branch for what changed (e.g. `bootstrap-rerun-django`),
+and skip Step 10 — they're already in the loop and this is a config change
+like any other.
 
 ## Step 10 — hand off into the loop
 
-Setup is not the finish line; it's the thing that had to happen before
-Stage 1. Don't end the session on the summary — walk them into the loop.
+Runs once the setup PR is merged and the default branch is pulled. Setup was
+not the finish line; it was the thing that had to happen before Stage 1 —
+so don't end the session there, walk them into the loop.
 
 **First**, show the loop in one screen (adjust nothing; this is the same
 map `CLAUDE.md` and the `sdlc` skill carry):
@@ -244,11 +274,13 @@ map `CLAUDE.md` and the `sdlc` skill carry):
 6. Maintain bands.yaml breach         → writes the next intent, loop repeats
 ```
 
-Say the two things that make it make sense: one kebab-case slug names the
-branch and every artifact on it, and each stage ends by committing its
-artifact — that commit is what starts the next stage. Mention that `/sdlc`
-re-prints this and reports where any branch stands, and that the session
-start message will tell them the same thing unprompted.
+Say the three things that make it make sense: one kebab-case slug names the
+branch and every artifact on it; each stage ends by committing its artifact,
+and that commit is what starts the next stage; and the default branch only
+ever moves by merged PR — the setup PR they just merged was the first
+example. Mention that `/sdlc` re-prints this and reports where any branch
+stands, and that the session start message will tell them the same thing
+unprompted.
 
 **Then** ask one question, per the one-question-at-a-time rule: *what's the
 first thing you want to build?*
@@ -256,7 +288,8 @@ first thing you want to build?*
 From their answer:
 
 1. Propose a slug derived from it and confirm it.
-2. `git checkout -b <slug>`, then copy `intent/TEMPLATE.md` to
+2. `git checkout -b <slug>` from the freshly pulled default branch (so the
+   merged setup is underneath it), then copy `intent/TEMPLATE.md` to
    `intent/<slug>.md`.
 3. Interview them through the template's sections — Problem, Proposed
    outcome, Affected systems, Constraints, Open questions — one question per

@@ -49,6 +49,11 @@ Do not review, or review at reduced strictness:
 
 ## Human authority
 
-Claude's review findings are advisory. A human approves the merge. On
+Claude's review findings are advisory. A human approves the merge, and the
+default branch only moves by merged PR — `default-branch-guard.sh` blocks a
+direct push, so these passes can't be skipped by pushing past them. On
 anything touching a protected path or production deploy, the hooks in
-`.claude/hooks/` enforce this — see `production-gate.sh`.
+`.claude/hooks/` enforce this too — see `production-gate.sh`.
+
+Back this with branch protection on the remote where your plan allows it. A
+hook binds Claude sessions in this repo; only the server side binds everyone.

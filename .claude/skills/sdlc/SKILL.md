@@ -80,11 +80,13 @@ the change to the `verifier` subagent — fresh context, checks the diff
 against the plan. Fix what it finds before a human sees the change.
 
 **Stage 5 — Deploy.** Run `/code-review` (it applies `REVIEW.md`'s four
-passes: Bugs, Security, Compliance, Simplicity), then push and open a PR.
-Claude's findings are advisory; a human approves the merge. Hooks gate
-anything hard to reverse — if one blocks you, that's a signal to ask a human,
-not to work around it. After merge, a bug fix's regression test belongs in
-`evals/` too.
+passes: Bugs, Security, Compliance, Simplicity), then push the branch and
+open a PR — `git push -u origin <slug> && gh pr create`. The default branch
+is PR-only and `default-branch-guard.sh` blocks a direct push to it, so
+there is no shortcut here even for a one-line change. Claude's findings are
+advisory; a human approves the merge. Hooks gate anything hard to reverse —
+if one blocks you, that's a signal to ask a human, not to work around it.
+After merge, a bug fix's regression test belongs in `evals/` too.
 
 **Stage 6 — Maintain.** A monitoring script watches SLOs against `bands.yaml`.
 A breach past the top band writes a new `intent/*.md` with the anomaly

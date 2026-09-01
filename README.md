@@ -39,13 +39,21 @@ you which stage the current branch is in and what the next action is, and
   unconditionally, regardless of your project's stack. Without it, every
   Edit/Write/Bash call gets blocked by a raw shell error instead of the
   hook's actual guardrail message.
+- **[`gh`](https://cli.github.com)**, authenticated — the default branch is
+  PR-only, so opening PRs is part of the normal flow, starting with
+  bootstrap's own setup PR. Without it nothing breaks; you just open each PR
+  in a browser from a compare URL instead.
 - **jq** — only needed to run `evals/run.sh` locally (Stage 4). CI installs
   it itself, so you can skip this until you run evals by hand.
 
-Marking this skeleton itself as a GitHub template repository also needs
-the **`gh`** CLI, authenticated — see "Maintaining this skeleton itself"
-below. That's a one-time step on the skeleton, not something every
-project clone needs.
+## The default branch is PR-only
+
+Nothing lands on the default branch except by merged pull request — that's
+what makes `REVIEW.md`'s passes and human approval unskippable rather than
+optional. `.claude/hooks/default-branch-guard.sh` blocks a direct push from
+any Claude session here (escape hatch: `ALLOW_DEFAULT_PUSH=1`, for a human
+who has decided to take that on). Pair it with branch protection on the
+remote for the half a local hook can't cover — see step 8 below.
 
 ## Getting started with a new project
 
@@ -60,18 +68,30 @@ project clone needs.
    you forget, any first message will still trigger it — an unconfigured
    clone is detected automatically and setup takes over before anything
    else — but `/bootstrap` is the reliable way to kick it off. Re-run any
-   time (e.g. if the stack changes later). It commits the finished setup on
-   the default branch, including the `.claude/.bootstrapped` marker — that
-   marker has to be tracked, or parallel worktrees look unconfigured and
-   try to bootstrap themselves again.
-4. *(Optional)* set the `ANTHROPIC_API_KEY` secret on the new GitHub repo
+   time (e.g. if the stack changes later). It ends by putting the setup on a
+   `bootstrap-setup` branch and opening a PR — the default branch is PR-only
+   here, and setup is no exception.
+4. **Merge that setup PR**, then tell Claude. It pulls the default branch
+   and walks you into Stage 1. The merge has to happen first: the
+   `.claude/.bootstrapped` marker must be tracked and reachable from the
+   default branch, or parallel worktrees look unconfigured and re-bootstrap
+   themselves, and any branch you fork before the merge carries the whole
+   scaffold in its diff.
+5. **You're in the loop.** Bootstrap shows the six-stage map, asks what you
+   want to build first, and creates and commits your first
+   `intent/<slug>.md` on a new branch with you.
+6. *(Optional)* set the `ANTHROPIC_API_KEY` secret on the new GitHub repo
    (Settings → Secrets → Actions) so `.github/workflows/agent-evals.yml`
    and the PR review workflow can run.
-5. **Trim or extend `.claude/skills/`** for anything project-specific
-   beyond what bootstrap covers — org brand, compliance, or UX policies.
-6. **You're in the loop.** Bootstrap ends by walking you into Stage 1 — it
-   shows the six-stage map, asks what you want to build first, and creates
-   and commits your first `intent/<slug>.md` on a new branch with you.
+7. *(Optional)* **Trim or extend `.claude/skills/`** for anything
+   project-specific beyond what bootstrap covers — org brand, compliance,
+   or UX policies.
+8. *(Recommended)* **turn on branch protection** for the default branch —
+   require a PR and an approving review. `default-branch-guard.sh` enforces
+   the same rule for Claude sessions in this repo, but only the server side
+   binds everyone, including humans at their own terminal. Note that on
+   github.com this needs a public repo or a paid plan; on a free private
+   repo the hook is the only enforcement you get.
 
 Bootstrap deliberately leaves `bands.yaml`, `evals/examples/`, and the
 `intent/`/`design/`/`plans/` templates alone — those fill in from real use,
