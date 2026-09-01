@@ -11,7 +11,7 @@
 set -euo pipefail
 
 input=$(cat)
-cmd=$(echo "$input" | jq -r '.tool_input.command // empty')
+cmd=$(echo "$input" | python3 -c "import json,sys; print(json.load(sys.stdin).get('tool_input',{}).get('command',''))" 2>/dev/null)
 
 # TODO: match your real deploy invocation.
 if [[ "$cmd" == *"deploy"* && "$cmd" == *"production"* ]]; then

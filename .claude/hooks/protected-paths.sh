@@ -9,7 +9,7 @@
 set -euo pipefail
 
 input=$(cat)
-file_path=$(echo "$input" | jq -r '.tool_input.file_path // empty')
+file_path=$(echo "$input" | python3 -c "import json,sys; print(json.load(sys.stdin).get('tool_input',{}).get('file_path',''))" 2>/dev/null)
 
 # TODO: replace with your real protected paths, e.g.:
 #   PROTECTED_PATTERNS=("schemas/*_generated.*" "legacy/v1/*")
