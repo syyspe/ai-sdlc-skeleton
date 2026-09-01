@@ -1,0 +1,45 @@
+name: Agent evals
+
+# Regression-tests agent configuration (CLAUDE.md, .claude/**) the same way
+# tests regression-test code. Runs whenever that configuration changes, on
+# a weekly schedule to catch drift from model/tool updates, and on demand.
+#
+# Requires an ANTHROPIC_API_KEY secret (Settings → Secrets and variables →
+# Actions) with access to the model you want evals to run against.
+
+on:
+  pull_request:
+    paths:
+      - "CLAUDE.md"
+      - "REVIEW.md"
+      - ".claude/**"
+      - "evals/**"
+  schedule:
+    - cron: "0 6 * * 1" # weekly, Monday 06:00 UTC
+  workflow_dispatch: {}
+
+jobs:
+  evals:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Install jq
+        run: sudo apt-get update && sudo apt-get install -y jq
+
+      - name: Install Claude Code
+        run: npm install -g @anthropic-ai/claude-code
+
+      - name: Run evals
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: |
+          chmod +x evals/run.sh
+          ./evals/run.sh
+
+      # TODO: publish pass rate as a PR comment / job summary, e.g. via
+      # `echo "..." >> "$GITHUB_STEP_SUMMARY"`, once you have enough evals
+      # for a rate to be meaningful.
