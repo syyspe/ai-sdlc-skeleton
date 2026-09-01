@@ -1,6 +1,6 @@
 ---
 name: bootstrap
-description: Use at the start of a session in a freshly cloned/templated copy of this skeleton that hasn't been configured yet (no .claude/.bootstrapped file). Also user-invocable any time as /bootstrap to redo setup. Walks through project name, purpose, tech stack, and commands one question at a time, optionally scaffolds the project for the chosen stack, then fills in every current placeholder across CLAUDE.md, README.md, REVIEW.md, and .claude/hooks/.
+description: Use at the start of a session in a freshly cloned/templated copy of this skeleton that hasn't been configured yet (no .claude/.bootstrapped file — CLAUDE.md's Setup section names this explicitly). Also user-invocable any time as /bootstrap to redo setup. Walks through project name, purpose, tech stack, and real current versions one question at a time, optionally scaffolds the project for the chosen stack, then fills in every current placeholder across CLAUDE.md, README.md, REVIEW.md, and .claude/hooks/.
 ---
 
 # Bootstrap a new project from this skeleton
@@ -8,15 +8,23 @@ description: Use at the start of a session in a freshly cloned/templated copy of
 This repo is a template — the person you're talking to just cloned or
 templated it to start a *new* project, not to edit the skeleton itself.
 Your job is to set it up: ask a few questions, optionally scaffold the
-chosen tech stack, then fill in every `<placeholder>` in the repo with
-real values.
+chosen tech stack at real current versions, then fill in every
+`<placeholder>` in the repo with real values.
 
 ## Rule: one question at a time
 
 Ask exactly one question per message, then wait for the reply before
-asking the next. Never bundle several open questions into one message —
-that's what made this cumbersome before. Keep each message short: a
-sentence of context (if needed) plus the one question.
+asking the next. Never bundle several open questions into one message.
+Keep each message short: a sentence of context (if needed) plus the one
+question.
+
+## Rule: never guess a version number
+
+Any time a version number is presented to the user (in a question's
+options or in a command about to run), it must come from an actual lookup
+performed in this session — not from memory. Version numbers you
+"remember" can be stale or wrong. See Step 3 for the lookup mechanism per
+ecosystem.
 
 ## Step 1 — project name and purpose
 
@@ -34,13 +42,61 @@ anything else):
 - **Plain Node/TS** (no framework)
 - **Not sure yet** — skip stack setup for now
 
-## Step 3 — scaffold (if applicable)
-
-If Step 2 picked a stack with a known init command, ask a single yes/no
-question: "Want me to set it up now with `<command>`?" If yes, run it. If
-"Not sure yet" or "Other" with no obvious tool, skip this step — note in
-the final summary that `/bootstrap` can be re-run later once the stack is
+Skip Steps 3–4 entirely for "Not sure yet" — go straight to Step 5, and
+note in the final summary that `/bootstrap` can be re-run once a stack is
 picked.
+
+## Step 3 — versions (real numbers, looked up now)
+
+Before asking, resolve real current version numbers for whatever Step 2
+picked:
+
+- **Node.js** (needed for Next.js, Vite, and Plain Node/TS): run
+  `curl -s https://nodejs.org/dist/index.json`. The first array entry is
+  the current release; the first entry with `"lts"` not equal to `false`
+  is the current LTS. This is Node's own release index — authoritative,
+  no guessing.
+- **Django**: `WebFetch` on `https://www.djangoproject.com/download/`,
+  asking specifically for the current LTS version and the latest stable
+  release — that page states both explicitly.
+- **Python**: don't look anything up — run `python3 --version` and use
+  whatever's actually installed locally (see the runtime boundary below).
+- **Next.js / React**: no lookup needed here — `create-next-app@latest`
+  resolves this itself via npm. You'll read back the real installed
+  version from `package.json` after scaffolding in Step 4.
+
+Then ask one `AskUserQuestion`, built from those real numbers:
+
+- **Next.js**: state the real Next.js/React versions `create-next-app@latest`
+  will install (informational — pinning an old major isn't usually wanted
+  for a new project). The actual choice: Node runtime — "Node `<real LTS
+  version>` LTS (recommended)" vs. "Node `<real current version>`
+  Current" vs. Other.
+- **Django**: "Django `<real LTS version>` LTS — longer support
+  (recommended)" vs. "Django `<real latest version>` latest — newest
+  features" vs. Other. Mention the locally available Python version
+  (`python3 --version`) as context, not a choice.
+- **React + Node (Vite)**: same Node LTS-vs-Current pattern as Next.js.
+  React version follows the Vite template's latest unless they pick
+  Other to name a specific version.
+- **Plain Node/TS**: Node LTS vs. Current, same pattern.
+
+## Step 4 — scaffold (if applicable)
+
+Ask a single yes/no question: "Want me to set it up now with
+`<command showing the real resolved versions>`?" If yes, run it.
+
+**Runtime boundary — do not cross this:** bootstrap records the *target*
+runtime version (`.nvmrc`, `package.json`'s `engines.node`) but never
+installs or switches the actual Node/Python interpreter binary — that's
+the developer's own environment (nvm, pyenv, etc.), out of scope here. If
+the chosen version isn't what's actually present on the machine, say so
+plainly in the final summary rather than pretending it was installed.
+Always verify what actually landed after scaffolding — `node --version`,
+`.venv/bin/python --version`, `pip show django`, the generated
+`package.json` — and use those *verified* numbers everywhere downstream
+(Step 7's CLAUDE.md Conventions, the final summary), not the numbers that
+were merely requested.
 
 **Scaffolding procedure** (applies to any tool that refuses to run in a
 non-empty directory — the skeleton's own files already occupy the repo
@@ -56,25 +112,32 @@ root):
      `.next/`) instead of overwriting it.
 3. `cd ..` and remove `.bootstrap-tmp/`.
 
-Per-stack commands:
+Per-stack commands, using the version chosen in Step 3:
 
 - **Next.js**:
   `npx create-next-app@latest . --typescript --eslint --tailwind --app --src-dir --import-alias "@/*" --use-npm --yes`
-  — run via the temp-dir procedure above.
+  — run via the temp-dir procedure above. After moving files up, write
+  `.nvmrc` with the chosen Node version and add `"engines": {"node":
+  ">=<chosen>"}` to `package.json`.
 - **Python/Django**:
-  `python3 -m venv .venv && .venv/bin/pip install --upgrade pip django && .venv/bin/django-admin startproject <slug> . && .venv/bin/pip freeze > requirements.txt`
-  — `<slug>` is the project name, lowercased with underscores. Django's
-  `startproject` doesn't generate a conflicting README, so run this
-  directly at the repo root (skip the temp-dir procedure).
+  `python3 -m venv .venv && .venv/bin/pip install --upgrade pip && .venv/bin/pip install "django==<chosen version>.*" && .venv/bin/django-admin startproject <slug> . && .venv/bin/pip freeze > requirements.txt`
+  — `<slug>` is the project name, lowercased with underscores; `<chosen
+  version>` is whichever of the two real Django numbers from Step 3 was
+  picked (or the Other value). Django's `startproject` doesn't generate a
+  conflicting README, so run this directly at the repo root (skip the
+  temp-dir procedure).
 - **React + Node (Vite)**:
   `npm create vite@latest . -- --template react-ts` then `npm install` —
-  via the temp-dir procedure above.
+  via the temp-dir procedure above. If Other named a specific React
+  version, follow with `npm install react@<x> react-dom@<x>
+  @types/react@<x> @types/react-dom@<x>`. Write `.nvmrc`/`engines.node`
+  as with Next.js.
 - **Plain Node/TS**:
   `npm init -y && npm install --save-dev typescript @types/node && npx tsc --init`
   — doesn't generate a conflicting README, safe to run directly at the
-  repo root.
+  repo root. Write `.nvmrc`/`engines.node`.
 
-## Step 4 — commands
+## Step 5 — commands
 
 Derive `CLAUDE.md`'s Commands section automatically where possible instead
 of asking again:
@@ -89,23 +152,27 @@ Only ask the user directly for a command if it genuinely can't be inferred
 (no manifest present, or stack setup was skipped) — one question for
 whatever's missing, not the whole set.
 
-## Step 5 — architecture
+## Step 6 — architecture
 
 If a stack was scaffolded, pre-fill the Architecture section from that
 framework's standard layout (e.g. Next.js App Router: `src/app/` routes,
 `src/components/`, `public/`). Ask a single question to confirm or adjust
 it, rather than asking from scratch.
 
-## Step 6 — deploy and protected paths (optional)
+## Step 7 — deploy and protected paths (optional)
 
 One combined question: "Any production deploy command yet, or
 protected/generated paths? Fine to skip and fill in later."
 
-## Step 7 — write everything
+## Step 8 — write everything
 
 Edit:
-- **`CLAUDE.md`** — Commands, Conventions, Architecture from the above.
-  Leave "Things Claude gets wrong here" empty.
+- **`CLAUDE.md`** — Commands, Conventions (including `Language/runtime`
+  and `Framework`, using the *verified actual* versions from Step 4, not
+  just what was requested), Architecture. Leave "Things Claude gets wrong
+  here" empty. **Remove the `## Setup` section entirely** — it's a
+  one-time trigger and `.claude/.bootstrapped` (written below) makes it
+  moot from here on.
 - **`README.md`** — replace the title and opening framing with the real
   project name/purpose. Leave the stage-map table and process notes as-is.
 - **`REVIEW.md`** — fill "Excluded paths" with the stack's known
@@ -113,12 +180,12 @@ Edit:
   `.venv/`, `__pycache__/`, `staticfiles/`). Leave the placeholder and say
   so in the summary if you can't confidently infer something.
 - **`.claude/hooks/production-gate.sh`** — update the deploy-command match
-  if one was given in Step 6; otherwise leave as-is.
+  if one was given in Step 7; otherwise leave as-is.
 - **`.claude/hooks/post-edit-reminder.sh`** — fill in the real format
   command (e.g. `npx prettier --write .`, `.venv/bin/black .`) if one
   exists.
 - **`.claude/hooks/protected-paths.sh`** — fill `PROTECTED_PATTERNS` if
-  named in Step 6; otherwise leave it empty (a valid, intentional state).
+  named in Step 7; otherwise leave it empty (a valid, intentional state).
 
 ## What NOT to touch
 
@@ -133,8 +200,10 @@ content for these to seem thorough:
 ## Finishing
 
 1. Write `.claude/.bootstrapped` with the captured project name, stack,
-   and today's date (plain text — a marker `session-start-check.sh` looks
-   for, not a config file other tooling reads).
-2. Report a short summary: what was scaffolded/installed, what was filled
-   in, and what's still deferred (any placeholder you couldn't infer,
-   plus the standing note about `bands.yaml`/`evals`).
+   verified versions, and today's date (plain text — a marker
+   `session-start-check.sh` and `CLAUDE.md`'s Setup section look for, not
+   a config file other tooling reads).
+2. Report a short summary: what was scaffolded/installed (with the
+   verified actual versions), what was filled in, and what's still
+   deferred (any placeholder you couldn't infer, plus the standing note
+   about `bands.yaml`/`evals`).

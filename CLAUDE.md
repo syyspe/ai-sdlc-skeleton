@@ -5,6 +5,16 @@
 > leverage file in the whole skeleton. Keep it accurate; stale instructions
 > are worse than none.
 
+## Setup
+
+If `.claude/.bootstrapped` does not exist in this repo, this project
+hasn't been configured yet. Before doing anything else this session —
+before answering unrelated questions — start the guided setup: open
+`.claude/skills/bootstrap/SKILL.md` and follow it exactly, one question at
+a time, beginning with the project's name and purpose. Give a one-line
+intro and the first question in your very first message; don't wait to be
+asked and don't ask permission to begin.
+
 ## Commands
 
 - Build: `<build command>`
