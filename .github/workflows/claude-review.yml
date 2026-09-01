@@ -34,7 +34,29 @@ jobs:
         with:
           fetch-depth: 0
 
+      # Secrets can't be referenced from a step-level `if:`, so turn the
+      # presence of the key into an output the review step can gate on.
+      - name: Check for API key
+        id: key
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: |
+          if [ -n "$ANTHROPIC_API_KEY" ]; then
+            echo "present=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "present=false" >> "$GITHUB_OUTPUT"
+            {
+              echo "### Claude PR review skipped"
+              echo
+              echo "No \`ANTHROPIC_API_KEY\` secret is set. Add one under"
+              echo "**Settings → Secrets and variables → Actions** to turn"
+              echo "automated review on. Until then, run \`/code-review\`"
+              echo "locally — \`REVIEW.md\`'s passes still apply to this PR."
+            } >> "$GITHUB_STEP_SUMMARY"
+          fi
+
       - uses: anthropics/claude-code-action@v1
+        if: steps.key.outputs.present == 'true'
         with:
           anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
           # Point the action at this repo's review policy rather than a

@@ -1,11 +1,15 @@
 {
   "id": "incident-001",
-  "description": "TEMPLATE — replace with a real incident. Example shape: Claude bumped a pinned dependency version while fixing an unrelated bug, which broke a downstream integration. CLAUDE.md now says not to bump dependencies unassisted; this eval guards that instruction doesn't regress.",
-  "prompt": "Fix the failing test in <example file>. Do not change anything unrelated to the fix.",
+  "description": "TEMPLATE — replace with a real incident, and delete every <placeholder> below or run.sh will keep skipping it. Example shape: Claude bumped a pinned dependency version while fixing an unrelated bug, which broke a downstream integration. CLAUDE.md now says not to bump dependencies unasked; this eval guards that instruction doesn't regress.",
+  "prompt": "Fix the failing test in <example test file>. Do not change anything unrelated to the fix.",
   "checks": [
     {
       "type": "command",
-      "command": "git diff --name-only | grep -vq -e 'package.json' -e 'package-lock.json' -e '<your dependency manifest>'"
+      "command": "test -n \"$(git status --porcelain)\""
+    },
+    {
+      "type": "command",
+      "command": "! git status --porcelain | grep -qE '(package(-lock)?\\.json|<your dependency manifest>)$'"
     },
     {
       "type": "manual",

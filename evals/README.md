@@ -43,6 +43,37 @@ through `claude -p` non-interactively, and runs each check. Adapt it to
 however your CI actually wants to score results (pass rate, blocking
 threshold, etc).
 
+### Writing checks
+
+Each eval runs in a disposable sandbox — the repo's tracked files, extracted
+with `git archive`, then `git init`ed and committed as "pre-eval state". So
+inside a check, **git means "what did the agent change"**:
+
+```
+test -n "$(git status --porcelain)"                 # it did something
+! git status --porcelain | grep -qE 'package\.json$' # and not that
+```
+
+Use `git status --porcelain` rather than `git diff` — it catches files the
+agent *created*, which `git diff` alone misses. Write the "must not" checks
+as a negated grep (`! ... | grep -q`); an un-negated `grep -v` passes as soon
+as any one file is innocent, which lets "fixed the bug *and* bumped the
+dependency" through. Nothing a check does can reach outside the sandbox.
+
+### When evals don't run
+
+Two clean skips, both exit 0, so a fresh clone isn't red before it has
+anything real to test:
+
+- **No `ANTHROPIC_API_KEY`** (or `CLAUDE_CODE_OAUTH_TOKEN`) — `claude -p`
+  has nothing to authenticate with. The CI workflow skips too, and says so
+  in the run summary.
+- **An eval still containing `<placeholders>`** — that's a template, not a
+  test; its prompt names files that don't exist. Replace them to switch it
+  on.
+
+`jq` is required, and is a hard failure rather than a skip.
+
 ## Where this sits in the loop
 
 **Done when:** the change's own verification command passes (Stage 4 proper),
