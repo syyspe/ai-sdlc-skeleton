@@ -22,3 +22,7 @@ __pycache__/
 
 # Claude Code local state
 .claude/settings.local.json
+
+# NOT ignored, deliberately: .claude/.bootstrapped. It's tracked project
+# state — git worktrees check out tracked files only, so ignoring it would
+# make every parallel worktree look unconfigured and re-run bootstrap.

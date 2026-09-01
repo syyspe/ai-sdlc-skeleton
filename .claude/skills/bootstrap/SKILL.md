@@ -199,13 +199,30 @@ content for these to seem thorough:
   copies one of them for the first initiative, but the templates stay
   exactly as they are
 
-## Step 9 — write the marker and summarise
+## Step 9 — write the marker, commit, and summarise
 
 1. Write `.claude/.bootstrapped` with the captured project name, stack,
    verified versions, and today's date (plain text — a marker
    `session-start-check.sh` and `CLAUDE.md`'s Setup section look for, not
    a config file other tooling reads).
-2. Report a short summary: what was scaffolded/installed (with the
+2. **Commit the whole setup on the default branch**, marker included —
+   `git add -A && git commit`, something like "Bootstrap <project>:
+   <stack>". Two reasons this can't be skipped:
+   - The marker has to be *tracked*, not just present. `git worktree add`
+     checks out tracked files only, so an uncommitted marker means every
+     parallel worktree looks unconfigured and tries to re-run bootstrap.
+   - Step 10 branches immediately. Uncommitted setup would ride along onto
+     the first feature branch instead of sitting on the default branch
+     where it belongs.
+
+   If the scaffold pulled in dependencies, check that `.gitignore` covers
+   them (`node_modules/`, `.venv/`) before staging — the repo's existing
+   ignores plus whatever the scaffold appended should already handle it.
+
+   On a *re-run* (`/bootstrap` after a stack change), commit on whatever
+   branch they're on and skip Step 10 — they're already in the loop, and
+   this is just a config change like any other.
+3. Report a short summary: what was scaffolded/installed (with the
    verified actual versions), what was filled in, and what's still
    deferred (any placeholder you couldn't infer, plus the standing note
    about `bands.yaml`/`evals`).

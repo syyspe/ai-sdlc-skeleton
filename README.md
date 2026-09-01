@@ -60,7 +60,10 @@ project clone needs.
    you forget, any first message will still trigger it — an unconfigured
    clone is detected automatically and setup takes over before anything
    else — but `/bootstrap` is the reliable way to kick it off. Re-run any
-   time (e.g. if the stack changes later).
+   time (e.g. if the stack changes later). It commits the finished setup on
+   the default branch, including the `.claude/.bootstrapped` marker — that
+   marker has to be tracked, or parallel worktrees look unconfigured and
+   try to bootstrap themselves again.
 4. *(Optional)* set the `ANTHROPIC_API_KEY` secret on the new GitHub repo
    (Settings → Secrets → Actions) so `.github/workflows/agent-evals.yml`
    and the PR review workflow can run.

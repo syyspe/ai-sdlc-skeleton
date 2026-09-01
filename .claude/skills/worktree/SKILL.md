@@ -43,12 +43,24 @@ git worktree add ../<repo-dir-name>-<slug> <existing-branch>
 
 ## After creating
 
-Report:
+Check `.claude/.bootstrapped` exists in the new worktree before reporting
+anything. A worktree gets a fresh checkout of **tracked** files only, so an
+untracked marker doesn't come along and the session you're about to hand
+over will think the project is unconfigured and try to re-run bootstrap.
+
+If it's missing, don't paper over it — the marker was never committed. Say
+so, and fix it in the main repo (`git add .claude/.bootstrapped && git
+commit`), then `git checkout .claude/.bootstrapped` in the worktree or
+recreate it. Bootstrap's Step 9 commits it precisely so this doesn't
+happen; a missing marker means setup predates that, or the commit was
+skipped.
+
+Then report:
 - The absolute path to the new worktree.
 - The exact command to run next, in a new terminal: `cd <path> && claude`.
-- That it's already fully set up — `.claude/.bootstrapped` and all
-  tracked config are present (worktrees share the repo's history), so the
-  new session won't re-run bootstrap.
+- That it's already fully set up — the marker and all tracked config are
+  present, so the new session won't re-run bootstrap, and its own
+  SessionStart check will report the new branch as Stage 1.
 
 ## Cleanup
 
