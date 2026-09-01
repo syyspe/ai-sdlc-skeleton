@@ -15,6 +15,20 @@ intent.md  →  spec.md  →  plan.md  →  PR + tests  →  deploy  →  monito
  (Plan)       (Design)     (Build)     (Test/Review)  (Deploy)   (Maintain)
 ```
 
+## Prerequisites
+
+- **git**
+- **[Claude Code](https://claude.com/claude-code)** (the `claude` CLI)
+- **python3** — the hooks in `.claude/hooks/` parse tool-call data with it,
+  unconditionally, regardless of your project's stack. Without it, every
+  Edit/Write/Bash call gets blocked by a raw shell error instead of the
+  hook's actual guardrail message.
+
+Marking this skeleton itself as a GitHub template repository also needs
+the **`gh`** CLI, authenticated — see "Maintaining this skeleton itself"
+below. That's a one-time step on the skeleton, not something every
+project clone needs.
+
 ## Getting started with a new project
 
 1. On GitHub, click **Use this template** on this repo → create your new
