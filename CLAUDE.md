@@ -59,6 +59,9 @@ Expected healthy output for tests: `<e.g. "N passed, 0 failed">`
   something.
 - Hooks in `.claude/hooks/` are hard guardrails, not suggestions — if one
   blocks you, that's a signal to ask a human, not to work around it.
+- The default branch is PR-only. Never push to it directly, however small
+  the change or however clearly it was asked for — commit on a branch and
+  open a PR. `default-branch-guard.sh` enforces this.
 
 ## The loop
 

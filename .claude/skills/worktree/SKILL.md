@@ -49,11 +49,11 @@ untracked marker doesn't come along and the session you're about to hand
 over will think the project is unconfigured and try to re-run bootstrap.
 
 If it's missing, don't paper over it — the marker was never committed. Say
-so, and fix it in the main repo (`git add .claude/.bootstrapped && git
-commit`), then `git checkout .claude/.bootstrapped` in the worktree or
-recreate it. Bootstrap's Step 9 commits it precisely so this doesn't
-happen; a missing marker means setup predates that, or the commit was
-skipped.
+so, and get it onto the default branch the same way as anything else: a
+branch, a commit, a PR, a merge. Once that's in, `git pull` in the main repo
+and recreate the worktree. Bootstrap's Step 9 lands the marker via the setup
+PR precisely so this doesn't come up; a missing marker means the project was
+set up before that, or the PR was never merged.
 
 Then report:
 - The absolute path to the new worktree.
