@@ -1,6 +1,6 @@
 ---
 name: bootstrap
-description: Use at the start of a session in a freshly cloned/templated copy of this skeleton that hasn't been configured yet (no .claude/.bootstrapped file — CLAUDE.md's Setup section names this explicitly). Also user-invocable any time as /bootstrap to redo setup. Walks through project name, purpose, tech stack, and real current versions one question at a time, optionally scaffolds the project for the chosen stack, then fills in every current placeholder across CLAUDE.md, README.md, REVIEW.md, and .claude/hooks/.
+description: Use at the start of a session in a freshly cloned/templated copy of this skeleton that hasn't been configured yet (no .claude/.bootstrapped file — CLAUDE.md's Setup section names this explicitly). Also user-invocable any time as /bootstrap to redo setup. Walks through project name, purpose, tech stack, and real current versions one question at a time, optionally scaffolds the project for the chosen stack, then fills in every current placeholder across CLAUDE.md, README.md, REVIEW.md, and .claude/hooks/, and finishes by walking the user into Stage 1 — their first intent/<slug>.md.
 ---
 
 # Bootstrap a new project from this skeleton
@@ -172,7 +172,8 @@ Edit:
   just what was requested), Architecture. Leave "Things Claude gets wrong
   here" empty. **Remove the `## Setup` section entirely** — it's a
   one-time trigger and `.claude/.bootstrapped` (written below) makes it
-  moot from here on.
+  moot from here on. Leave `## The loop` exactly as it is — its `<slug>` is
+  a variable that gets filled in per initiative, not a setup placeholder.
 - **`README.md`** — replace the title and opening framing with the real
   project name/purpose. Leave the stage-map table and process notes as-is.
 - **`REVIEW.md`** — fill "Excluded paths" with the stack's known
@@ -194,10 +195,11 @@ content for these to seem thorough:
 
 - `bands.yaml` (Stage 6 monitoring thresholds — needs live metrics)
 - `evals/examples/*.json` (Stage 4 — needs a real incident to regress-test)
-- `intent/`, `design/`, `plans/` templates (per-initiative, not global
-  setup)
+- the `intent/`, `design/`, `plans/` **templates** themselves — Step 10
+  copies one of them for the first initiative, but the templates stay
+  exactly as they are
 
-## Finishing
+## Step 9 — write the marker and summarise
 
 1. Write `.claude/.bootstrapped` with the captured project name, stack,
    verified versions, and today's date (plain text — a marker
@@ -207,3 +209,48 @@ content for these to seem thorough:
    verified actual versions), what was filled in, and what's still
    deferred (any placeholder you couldn't infer, plus the standing note
    about `bands.yaml`/`evals`).
+
+## Step 10 — hand off into the loop
+
+Setup is not the finish line; it's the thing that had to happen before
+Stage 1. Don't end the session on the summary — walk them into the loop.
+
+**First**, show the loop in one screen (adjust nothing; this is the same
+map `CLAUDE.md` and the `sdlc` skill carry):
+
+```
+1. Plan     intent/<slug>.md          → product owner approves
+2. Design   design/<slug>.spec.md     → product owner approves
+3. Build    plans/<slug>.plan.md      → commit the plan, then write code
+4. Test     verification + verifier   → must be green before review
+5. Deploy   PR per REVIEW.md          → a human approves the merge
+6. Maintain bands.yaml breach         → writes the next intent, loop repeats
+```
+
+Say the two things that make it make sense: one kebab-case slug names the
+branch and every artifact on it, and each stage ends by committing its
+artifact — that commit is what starts the next stage. Mention that `/sdlc`
+re-prints this and reports where any branch stands, and that the session
+start message will tell them the same thing unprompted.
+
+**Then** ask one question, per the one-question-at-a-time rule: *what's the
+first thing you want to build?*
+
+From their answer:
+
+1. Propose a slug derived from it and confirm it.
+2. `git checkout -b <slug>`, then copy `intent/TEMPLATE.md` to
+   `intent/<slug>.md`.
+3. Interview them through the template's sections — Problem, Proposed
+   outcome, Affected systems, Constraints, Open questions — one question per
+   message. Write what they actually said; leave a section thin rather than
+   inventing constraints to fill it. Set `status: draft` and today's date.
+4. Commit it.
+
+**Then stop.** Tell them the intent is `status: draft`, and that a product
+owner flipping it to `approved` and committing is what unlocks Stage 2 — so
+Design starts in a later session, not this one. Don't draft the spec now,
+however obvious it looks.
+
+If they'd rather not start anything yet, that's fine — point at `/sdlc` for
+whenever they do, and end there.

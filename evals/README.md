@@ -42,3 +42,17 @@ See `examples/incident-001.json` for a filled-out example. Shape:
 through `claude -p` non-interactively, and runs each check. Adapt it to
 however your CI actually wants to score results (pass rate, blocking
 threshold, etc).
+
+## Where this sits in the loop
+
+**Done when:** the change's own verification command passes (Stage 4 proper),
+and — if this change touched `CLAUDE.md` or `.claude/**` — the eval suite
+passes in CI.
+
+**Next:** Stage 5 (Deploy) — `/code-review`, push, PR, human approval.
+
+**Coming back the other way:** every Stage 6 incident should land here as a
+permanent eval, so the same failure can't recur. That's the loop closing:
+`bands.yaml` breach → `intent/*.md` → fix → regression test back in `evals/`.
+
+Running the suite locally needs `jq` (CI installs it itself).

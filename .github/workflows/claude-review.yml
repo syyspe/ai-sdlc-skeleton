@@ -42,8 +42,8 @@ jobs:
           # nit cap.
           prompt: |
             Review this pull request following the policy in REVIEW.md at
-            the root of this repo: run the Bugs, Security, and Compliance
-            passes in that order, rank findings Important vs. Nit, respect
-            the nit cap, and skip the excluded paths it lists. If a
-            plans/*.plan.md exists for this branch, check the diff against
-            it as part of the Compliance pass.
+            the root of this repo: run all four passes in that order (Bugs,
+            Security, Compliance, Simplicity), rank findings Important vs.
+            Nit, respect the nit cap, and skip the excluded paths it lists.
+            If a plans/*.plan.md exists for this branch, check the diff
+            against it as part of the Compliance pass.

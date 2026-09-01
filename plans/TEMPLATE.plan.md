@@ -25,3 +25,9 @@ date: <YYYY-MM-DD>
 ## Risks / rollback
 
 Anything hard to reverse, and how to roll back if it goes wrong.
+
+---
+
+**Next stage:** commit this plan *before* writing code. Then implement the
+work order, run the verification command above, and hand the change to the
+`verifier` subagent (Stage 4) before opening a PR (Stage 5).

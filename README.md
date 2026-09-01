@@ -15,6 +15,22 @@ intent.md  →  spec.md  →  plan.md  →  PR + tests  →  deploy  →  monito
  (Plan)       (Design)     (Build)     (Test/Review)  (Deploy)   (Maintain)
 ```
 
+Each stage ends by committing its artifact, and that commit is what starts
+the next one:
+
+| Stage | Artifact | Done when | Which unlocks |
+|---|---|---|---|
+| 1. Plan | `intent/<slug>.md` | product owner sets `status: approved` | Design |
+| 2. Design | `design/<slug>.spec.md` | policy flags resolved, product owner sets `status: approved` | Build |
+| 3. Build | `plans/<slug>.plan.md`, then code | plan committed **before** code, work order done | Test |
+| 4. Test | verification output, `verifier` verdict | the command in `CLAUDE.md` passes and `verifier` says PASS | Deploy |
+| 5. Deploy | PR reviewed per `REVIEW.md` | a human approves and merges | Maintain |
+| 6. Maintain | `bands.yaml` breach → new `intent/*.md` | the breach is triaged | Plan, again |
+
+You never have to hold that in your head. Every session starts by telling
+you which stage the current branch is in and what the next action is, and
+**`/sdlc`** re-answers that any time you ask.
+
 ## Prerequisites
 
 - **git**
@@ -23,6 +39,8 @@ intent.md  →  spec.md  →  plan.md  →  PR + tests  →  deploy  →  monito
   unconditionally, regardless of your project's stack. Without it, every
   Edit/Write/Bash call gets blocked by a raw shell error instead of the
   hook's actual guardrail message.
+- **jq** — only needed to run `evals/run.sh` locally (Stage 4). CI installs
+  it itself, so you can skip this until you run evals by hand.
 
 Marking this skeleton itself as a GitHub template repository also needs
 the **`gh`** CLI, authenticated — see "Maintaining this skeleton itself"
@@ -48,8 +66,9 @@ project clone needs.
    and the PR review workflow can run.
 5. **Trim or extend `.claude/skills/`** for anything project-specific
    beyond what bootstrap covers — org brand, compliance, or UX policies.
-6. **Write your first `intent/*.md`** using the template, and you're in
-   the loop.
+6. **You're in the loop.** Bootstrap ends by walking you into Stage 1 — it
+   shows the six-stage map, asks what you want to build first, and creates
+   and commits your first `intent/<slug>.md` on a new branch with you.
 
 Bootstrap deliberately leaves `bands.yaml`, `evals/examples/`, and the
 `intent/`/`design/`/`plans/` templates alone — those fill in from real use,
@@ -64,25 +83,38 @@ is pushed.
 
 ## Starting your first piece of work
 
-One slug threads through everything below — pick a short kebab-case name
-for the initiative (e.g. `csv-export`) and reuse it as the branch name and
-every artifact's filename.
+The short version: **run `/sdlc`** and Claude tells you where the current
+branch stands and what to do next, at any point in the cycle. The long
+version is below, once, so you know what it's driving.
+
+One slug threads through everything — pick a short kebab-case name for the
+initiative (e.g. `csv-export`) and reuse it as the branch name and every
+artifact's filename. Each step's *unlock* is what makes the next step legal;
+don't start a stage whose upstream artifact still says `status: draft`.
 
 1. `git checkout -b <slug>` from the default branch.
-2. Copy `intent/TEMPLATE.md` → `intent/<slug>.md`, fill it in (talk it
-   through with Claude if useful), commit.
-3. Ask Claude to draft `design/<slug>.spec.md` from the intent. Review,
-   adjust, commit.
-4. Start a Claude Code session in **plan mode** referencing the spec and
-   iterate until the plan's right — see `plans/README.md` for the exact
-   steps — then commit it as `plans/<slug>.plan.md`.
-5. Switch to auto mode, implement, and verify against `CLAUDE.md`'s
-   commands.
-6. Push, open a PR. `REVIEW.md`'s passes apply here — run `/code-review`
-   yourself before or instead of waiting on the GitHub Action if you want
-   the feedback sooner.
-7. Merge. If this was a bug fix, the regression test that proved it
-   belongs in `evals/` too — see `evals/README.md`.
+2. **Stage 1.** Copy `intent/TEMPLATE.md` → `intent/<slug>.md`, fill it in
+   (talk it through with Claude if useful), commit.
+   *Unlock:* a product owner reviews it and sets `status: approved`.
+3. **Stage 2.** Ask Claude to draft `design/<slug>.spec.md` from the approved
+   intent. Policy skills apply here — anything they raise lands under **Policy
+   flags** and goes to that policy's owner. Review, adjust, commit.
+   *Unlock:* flags resolved and the product owner sets `status: approved`.
+4. **Stage 3.** Start a Claude Code session in **plan mode** referencing the
+   spec and iterate until the plan's right — see `plans/README.md` for the
+   exact steps — then commit it as `plans/<slug>.plan.md`.
+   *Unlock:* the plan is committed. Nothing gets implemented before that.
+5. **Stages 3–4.** Switch to auto mode, implement, and verify against
+   `CLAUDE.md`'s commands. Then hand the change to the `verifier` subagent,
+   which checks the diff against the plan with fresh context.
+   *Unlock:* verification passes and `verifier` reports PASS.
+6. **Stage 5.** Push, open a PR. `REVIEW.md`'s four passes apply here — run
+   `/code-review` yourself before or instead of waiting on the GitHub Action
+   if you want the feedback sooner.
+   *Unlock:* a human approves the merge. Claude's findings are advisory.
+7. **Stage 6.** Merge. If this was a bug fix, the regression test that proved
+   it belongs in `evals/` too — see `evals/README.md`. From here, a breached
+   control band in `bands.yaml` writes the next `intent/*.md` on its own.
 
 Working on more than one of these at a time? See the `worktree` skill
 (`.claude/skills/worktree/SKILL.md`) instead of switching branches in
@@ -97,6 +129,7 @@ place.
 | `plans/` | 3. Build | Implementation plans (usually one per branch/PR, committed for audit trail) |
 | `CLAUDE.md` | 3. Build | Institutional knowledge Claude reads every session |
 | `.claude/skills/` | 2–3 | Triggered policy skills (brand, security, compliance, UX) |
+| `.claude/skills/sdlc/` | all | `/sdlc` — reports which stage the branch is in and drives the next handoff |
 | `.claude/hooks/` | 3, 5 | Deterministic guardrails and approval gates |
 | `.claude/agents/` | 3 | Subagents for repeated tasks (verification, review, research) |
 | `.claude/settings.json` | 3, 5 | Wires hooks into tool events |
@@ -125,8 +158,8 @@ and commit the failing test *before* the fix, and don't let the agent edit it
 while fixing. Treat `CLAUDE.md`/`.claude/` changes like code: they get evals
 in CI (see `evals/`), and every production incident becomes a permanent eval.
 
-**5. Deploy.** `REVIEW.md` defines the passes Claude runs on every PR (bugs,
-security, compliance). Hooks act as approval gates for anything
+**5. Deploy.** `REVIEW.md` defines the four passes Claude runs on every PR
+(bugs, security, compliance, simplicity). Hooks act as approval gates for anything
 hard-to-reverse — production deploys, protected-path edits. If you're a
 regulated org, layer in [managed
 settings](https://docs.claude.com/en/docs/claude-code/settings) at the admin
