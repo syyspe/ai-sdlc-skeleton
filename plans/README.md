@@ -15,4 +15,5 @@ Workflow:
    plan — Stage 5 review checks that.
 
 Copy `TEMPLATE.plan.md` to get started. For independent parallel streams,
-run each in its own git worktree.
+use the `worktree` skill (`.claude/skills/worktree/SKILL.md`) instead of
+switching branches in place.

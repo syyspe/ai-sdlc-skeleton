@@ -48,6 +48,32 @@ above to work: `gh repo edit <owner>/<repo> --template`, or Settings →
 General → check "Template repository". One-time setup, done once this repo
 is pushed.
 
+## Starting your first piece of work
+
+One slug threads through everything below — pick a short kebab-case name
+for the initiative (e.g. `csv-export`) and reuse it as the branch name and
+every artifact's filename.
+
+1. `git checkout -b <slug>` from the default branch.
+2. Copy `intent/TEMPLATE.md` → `intent/<slug>.md`, fill it in (talk it
+   through with Claude if useful), commit.
+3. Ask Claude to draft `design/<slug>.spec.md` from the intent. Review,
+   adjust, commit.
+4. Start a Claude Code session in **plan mode** referencing the spec and
+   iterate until the plan's right — see `plans/README.md` for the exact
+   steps — then commit it as `plans/<slug>.plan.md`.
+5. Switch to auto mode, implement, and verify against `CLAUDE.md`'s
+   commands.
+6. Push, open a PR. `REVIEW.md`'s passes apply here — run `/code-review`
+   yourself before or instead of waiting on the GitHub Action if you want
+   the feedback sooner.
+7. Merge. If this was a bug fix, the regression test that proved it
+   belongs in `evals/` too — see `evals/README.md`.
+
+Working on more than one of these at a time? See the `worktree` skill
+(`.claude/skills/worktree/SKILL.md`) instead of switching branches in
+place.
+
 ## Repository layout
 
 | Path | Stage | Purpose |

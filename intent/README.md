@@ -7,6 +7,11 @@ expertise required if a connector is wired up to commit on their behalf.
 Copy `TEMPLATE.md` to get started. A product owner reviews and approves
 before it advances to Stage 2 (Design).
 
+The slug also names the branch (`git checkout -b <slug>`) and every
+downstream artifact (`design/<slug>.spec.md`, `plans/<slug>.plan.md`) —
+see the root `README.md`'s "Starting your first piece of work" for the
+full recipe end to end.
+
 Control-band breaches from `bands.yaml` (Stage 6) also land here
 automatically, in the same format, closing the monitoring loop back to
 Stage 1.
