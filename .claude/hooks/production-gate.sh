@@ -6,12 +6,19 @@
 # (an env var set by a release-approval step in CI is one option; a file
 # checked into a short-lived location is another).
 #
+# Matching runs against the command's *code*, not its prose: heredoc bodies
+# and quoted strings are stripped first. Otherwise a commit message that
+# merely mentions deploying to production blocks its own commit, which is a
+# confusing way to learn that a gate exists.
+#
 # Exit 0 to allow, exit 2 to block (stderr is shown to Claude as the reason).
 
 set -euo pipefail
 
 input=$(cat)
-cmd=$(echo "$input" | python3 -c "import json,sys; print(json.load(sys.stdin).get('tool_input',{}).get('command',''))" 2>/dev/null)
+
+# Match against the command's code, not the prose it carries.
+cmd=$(python3 "$(dirname "${BASH_SOURCE[0]}")/command-code.py" <<< "$input" 2>/dev/null)
 
 # TODO: match your real deploy invocation.
 if [[ "$cmd" == *"deploy"* && "$cmd" == *"production"* ]]; then

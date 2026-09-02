@@ -16,7 +16,10 @@
 set -euo pipefail
 
 input=$(cat)
-command=$(echo "$input" | python3 -c "import json,sys; print(json.load(sys.stdin).get('tool_input',{}).get('command',''))" 2>/dev/null)
+# Match against the command's code, not the prose it carries — otherwise a
+# commit message mentioning a push to the default branch blocks its own
+# commit. See command-code.py.
+command=$(python3 "$(dirname "${BASH_SOURCE[0]}")/command-code.py" <<< "$input" 2>/dev/null)
 
 case "$command" in
   *"git push"*) ;;
