@@ -18,6 +18,12 @@ asking the next. Never bundle several open questions into one message.
 Keep each message short: a sentence of context (if needed) plus the one
 question.
 
+When that question is an `AskUserQuestion`, give it **at most four
+options** — the tool rejects a fifth outright ("Invalid tool parameters")
+and you lose the turn. "Other" is appended automatically and doesn't count
+against the four, so route the catch-all cases through it rather than
+spending an option on them.
+
 ## Rule: never guess a version number
 
 Any time a version number is presented to the user (in a question's
@@ -33,18 +39,27 @@ Wait for the answer before moving on.
 
 ## Step 2 — tech stack
 
-Use `AskUserQuestion` with these options (plus the built-in "Other" for
-anything else):
+Use `AskUserQuestion` with exactly these four options. **Four is the
+maximum the tool accepts** — a fifth makes the whole call fail with
+"Invalid tool parameters", so don't add one:
 
 - **Next.js** (TypeScript, App Router)
 - **Python / Django**
 - **React + Node** (Vite)
 - **Plain Node/TS** (no framework)
-- **Not sure yet** — skip stack setup for now
 
-Skip Steps 3–4 entirely for "Not sure yet" — go straight to Step 5, and
-note in the final summary that `/bootstrap` can be re-run once a stack is
-picked.
+The tool appends "Other" itself, which covers both a stack that isn't
+listed and not having decided yet. Say so in the question text — something
+like "or pick Other for anything else, including 'not sure yet'" — so the
+undecided path is visible rather than something they have to guess at.
+
+If the answer is Other and names a real stack, take it: skip the scaffold
+in Step 4 (you don't have a verified command for it) but still ask for its
+version in Step 3 and fill `CLAUDE.md`'s Conventions with it.
+
+If the answer is Other and amounts to "not sure yet", skip Steps 3–4
+entirely — go straight to Step 5, and note in the final summary that
+`/bootstrap` can be re-run once a stack is picked.
 
 ## Step 3 — versions (real numbers, looked up now)
 
