@@ -84,7 +84,10 @@ remote for the half a local hook can't cover — see step 8 below.
    (Settings → Secrets → Actions) so `.github/workflows/agent-evals.yml`
    and the PR review workflow can run. Without it both skip cleanly and
    explain themselves in the run summary — your PRs stay green, they just
-   don't get automated review until you opt in.
+   don't get automated review until you opt in. Note that the key is billed
+   to whoever owns it: turning this on means you pay for every eval run and
+   every PR review on that repo. It's opt-in per repo for that reason, rather
+   than something bootstrap switches on for you.
 7. *(Optional)* **Trim or extend `.claude/skills/`** for anything
    project-specific beyond what bootstrap covers — org brand, compliance,
    or UX policies.
@@ -201,5 +204,12 @@ should also land in `evals/` as a regression test.
   placeholders you fill in.
 - No production monitoring script is included (Stage 6's detection script is
   specific to your metrics stack) — `bands.yaml` just defines the shape.
-- No license file — add one before making the repo public if you intend
-  others to reuse it.
+
+## License
+
+[MIT](LICENSE). Copy it, fork it, sell whatever you build with it.
+
+`LICENSE` gets copied into every repo made from this template, which is
+almost certainly not what you want downstream — **replace it with your own
+before your project goes anywhere.** The scaffolding here isn't the part
+you'll want to license to anyone.
