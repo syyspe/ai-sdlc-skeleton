@@ -113,7 +113,7 @@ it. If implementation departed from the plan, update $plan in the same commit."
 else
   stage="Stage 3 (Build) — plan committed, working tree clean."
   next="implement $plan's work order, or if it's already implemented and
-committed, move to Stage 5: run /code-review (REVIEW.md's four passes), push,
+committed, move to Stage 5: run /review (REVIEW.md's four passes), push,
 and open a PR for human approval."
 fi
 

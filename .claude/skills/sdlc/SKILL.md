@@ -79,7 +79,7 @@ the failing test *before* the fix and don't edit it while fixing. Then hand
 the change to the `verifier` subagent — fresh context, checks the diff
 against the plan. Fix what it finds before a human sees the change.
 
-**Stage 5 — Deploy.** Run `/code-review` (it applies `REVIEW.md`'s four
+**Stage 5 — Deploy.** Run `/review` (it applies `REVIEW.md`'s four
 passes: Bugs, Security, Compliance, Simplicity), then push the branch and
 open a PR — `git push -u origin <slug> && gh pr create`. The default branch
 is PR-only and `default-branch-guard.sh` blocks a direct push to it, so

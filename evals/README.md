@@ -80,7 +80,7 @@ anything real to test:
 and — if this change touched `CLAUDE.md` or `.claude/**` — the eval suite
 passes in CI.
 
-**Next:** Stage 5 (Deploy) — `/code-review`, push, PR, human approval.
+**Next:** Stage 5 (Deploy) — `/review`, push, PR, human approval.
 
 **Coming back the other way:** every Stage 6 incident should land here as a
 permanent eval, so the same failure can't recur. That's the loop closing:
