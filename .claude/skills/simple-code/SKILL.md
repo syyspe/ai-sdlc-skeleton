@@ -37,6 +37,16 @@ Never suppress a limit or add a lint-disable to get past it — restructure
 instead. Hitting a limit is a signal the unit is doing too much, not a
 formatting problem.
 
+**Signatures a dependency dictates are exempt from the parameter limit.** If
+a library or framework calls your function with a fixed arity and behaves
+differently with fewer parameters, match that signature — Express error
+middleware, for example, must take `(err, req, res, next)` to be treated as
+an error handler. The exemption covers the parameter count only; the body
+still follows every other limit. It doesn't apply when you choose the
+signature, such as your own callbacks, or props you could bundle into an
+object. If a linter enforces the limit, the exemption is a scoped override
+in its config naming the file, never an inline lint-disable.
+
 ## No defensive code
 
 Don't handle inputs or states that can't occur given the caller and type
