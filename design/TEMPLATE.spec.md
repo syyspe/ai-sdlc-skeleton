@@ -51,7 +51,6 @@ Anything still unresolved that engineering needs to answer during planning.
 
 **Product owner approval:** `<name>` — `<date>`
 
-**Next stage:** once policy flags are resolved, approval is in, and `status:`
-above reads `approved`, commit — that unlocks Stage 3 (Build). Open a session
-in plan mode against this spec and commit `plans/<slug>.plan.md` before any
-code is written.
+**Next stage:** once policy flags are resolved and approval is in, set
+`status: approved` above and commit — that commit is the approval. Then run
+`/sdlc`.

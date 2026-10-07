@@ -1,6 +1,6 @@
 ---
 name: verifier
-description: Use after implementation to independently verify a change against its plan.md before it goes to human review. Fresh context, no assumptions carried over from the implementing session — runs the verification command from CLAUDE.md, checks the diff matches the plan's work order, and reports pass/fail with specifics. Use PROACTIVELY at the end of any Stage 3 build before opening a PR.
+description: Use after implementation to independently verify a change against its plan.md before it goes to human review. Fresh context, no assumptions carried over from the implementing session — runs the verification command from CLAUDE.md, checks the diff matches the plan's work order, and reports pass/fail with specifics. Use PROACTIVELY in Stage 4 (Test), the fresh session after the build is committed, before opening a PR.
 tools: Read, Bash, Grep, Glob
 model: sonnet
 ---
@@ -67,7 +67,7 @@ to judge (e.g. a product decision), say so explicitly rather than guessing.
 *This agent is pinned to `model: sonnet` rather than inheriting the main
 session's model. Verification is bounded, mechanical work — read a plan, diff
 it against the tree, run a command, report the output — and it runs on every
-Stage 3 build, so it's where an inherited Opus costs the most for the least.
+build, so it's where an inherited Opus costs the most for the least.
 Change the pin to `inherit` if your verification needs deeper judgment.
 The batching and output caps above are the other half of that: this agent's
 cost is roughly its context size times the number of tool calls it makes.*

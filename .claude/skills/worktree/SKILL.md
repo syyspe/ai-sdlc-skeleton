@@ -60,7 +60,7 @@ Then report:
 - The exact command to run next, in a new terminal: `cd <path> && claude`.
 - That it's already fully set up — the marker and all tracked config are
   present, so the new session won't re-run bootstrap, and its own
-  SessionStart check will report the new branch as Stage 1.
+  SessionStart check will report the new branch as Stage 1 (Plan).
 
 ## Cleanup
 

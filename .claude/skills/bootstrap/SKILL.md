@@ -187,10 +187,11 @@ Edit:
   just what was requested), Architecture. Leave "Things Claude gets wrong
   here" empty. **Remove the `## Setup` section entirely** — it's a
   one-time trigger and `.claude/.bootstrapped` (written below) makes it
-  moot from here on. Leave `## The loop` exactly as it is — its `<slug>` is
-  a variable that gets filled in per initiative, not a setup placeholder.
+  moot from here on. Leave `## The loop` and `## Session hygiene` exactly
+  as they are — they point at the `sdlc` skill, and nothing in them is a
+  setup placeholder.
 - **`README.md`** — replace the title and opening framing with the real
-  project name/purpose. Leave the stage-map table and process notes as-is.
+  project name/purpose. Leave the process sections as-is.
 - **`REVIEW.md`** — fill "Excluded paths" with the stack's known
   generated/build dirs (Next.js → `.next/`, `node_modules/`; Django →
   `.venv/`, `__pycache__/`, `staticfiles/`). Leave the placeholder and say
@@ -281,25 +282,11 @@ Runs once the setup PR is merged and the default branch is pulled. Setup was
 not the finish line; it was the thing that had to happen before Stage 1 —
 so don't end the session there, walk them into the loop.
 
-**First**, show the loop in one screen (adjust nothing; this is the same
-map `CLAUDE.md` and the `sdlc` skill carry):
-
-```
-1. Plan     intent/<slug>.md          → product owner approves
-2. Design   design/<slug>.spec.md     → product owner approves
-3. Build    plans/<slug>.plan.md      → commit the plan, then write code
-4. Test     verification + verifier   → must be green before review
-5. Deploy   PR per REVIEW.md          → a human approves the merge
-6. Maintain bands.yaml breach         → writes the next intent, loop repeats
-```
-
-Say the three things that make it make sense: one kebab-case slug names the
-branch and every artifact on it; each stage ends by committing its artifact,
-and that commit is what starts the next stage; and the default branch only
-ever moves by merged PR — the setup PR they just merged was the first
-example. Mention that `/sdlc` re-prints this and reports where any branch
-stands, and that the session start message will tell them the same thing
-unprompted.
+**First**, show the stage table from `.claude/skills/sdlc/SKILL.md` and its
+"Rules that don't bend", plus that the default branch moves only by merged PR
+(the setup PR they just merged was the first). Mention that `/sdlc` re-prints
+this and reports where any branch stands, and that the session start message
+will tell them the same thing unprompted.
 
 **Then** ask one question, per the one-question-at-a-time rule: *what's the
 first thing you want to build?*
@@ -310,16 +297,12 @@ From their answer:
 2. `git checkout -b <slug>` from the freshly pulled default branch (so the
    merged setup is underneath it), then copy `intent/TEMPLATE.md` to
    `intent/<slug>.md`.
-3. Interview them through the template's sections — Problem, Proposed
-   outcome, Affected systems, Constraints, Open questions — one question per
-   message. Write what they actually said; leave a section thin rather than
-   inventing constraints to fill it. Set `status: draft` and today's date.
+3. Follow `.claude/skills/sdlc/stages/1-plan.md`, one question per message.
 4. Commit it.
 
-**Then stop.** Tell them the intent is `status: draft`, and that a product
-owner flipping it to `approved` and committing is what unlocks Stage 2 — so
-Design starts in a later session, not this one. Don't draft the spec now,
-however obvious it looks.
+**Then stop** and hand off: `.claude/skills/sdlc/SKILL.md` "Handing off".
+Design waits on a product owner committing `status: approved`, so it starts
+in a later session, not this one.
 
 If they'd rather not start anything yet, that's fine — point at `/sdlc` for
 whenever they do, and end there.

@@ -5,10 +5,12 @@
 #      the bootstrap skill.
 #   2. Configured repo — report where the current branch stands in the SDLC
 #      loop and what the next action is. The stage is derived from the
-#      artifact chain itself (which of intent/design/plans exist for the
-#      branch slug, and their "status:" frontmatter), never from separate
-#      state. That's the playbook's automated handoff: an approved intent
-#      unlocks design, an approved spec unlocks plan mode.
+#      artifact chain itself — which of intent/design/plans are committed in
+#      HEAD for the branch slug, the "status:" those commits carry, and
+#      whether code has landed since the plan commit — never from separate
+#      state, and never from what is merely on disk. An approval counts once
+#      it is committed. Every boundary is computable here; the sdlc skill says
+#      why that constraint drives where verification sits.
 #
 # Both paths only inject context — this hook never blocks anything, and any
 # probe that can't run (no git, missing dirs) falls back to silence.
@@ -26,7 +28,9 @@ fi
 HOWTO="Orientation, not a script to recite: if the user opens with something \
 open-ended (what next, let's continue, hi), lead with the stage and next \
 action in at most two lines. Otherwise hold this as context and answer what \
-was asked. The sdlc skill has the full loop map and the exact commands."
+was asked. Rules and reasoning: the sdlc skill."
+
+STAGES=".claude/skills/sdlc/stages"
 
 emit() {
   MSG="$1" python3 -c 'import json, os
@@ -37,14 +41,37 @@ print(json.dumps({"hookSpecificOutput": {
   exit 0
 }
 
-# Frontmatter "status:" value of an artifact, or empty if absent/unreadable.
+committed() {
+  git cat-file -e "HEAD:$1" 2>/dev/null
+}
+
+# Frontmatter "status:" of a file's content on stdin, or empty if absent.
+status_in() {
+  sed -n '1,12s/^status:[[:space:]]*\([a-z]*\).*/\1/p' | head -1
+}
+
+# The status an artifact carries in HEAD — the only one that counts.
 status_of() {
-  sed -n '1,12s/^status:[[:space:]]*\([a-z]*\).*/\1/p' "$1" 2>/dev/null | head -1
+  git show "HEAD:$1" 2>/dev/null | status_in || true
+}
+
+approved() {
+  [ "$(status_of "$1")" = "approved" ]
+}
+
+# Appended to a waiting-on-approval message when the file on disk already
+# says approved: someone flipped it and hasn't committed the flip.
+uncommitted_approval() {
+  if [ "$(status_in 2>/dev/null <"$1" || true)" = "approved" ]; then
+    printf '\n%s reads status: approved on disk, but not in HEAD — an approval\ncounts only once committed.' "$1"
+  fi
 }
 
 checklist_line() {
-  if [ -f "$1" ]; then
+  if committed "$1"; then
     printf '  [x] %-34s %s\n' "$1" "$(status_of "$1")"
+  elif [ -f "$1" ]; then
+    printf '  [ ] %-34s %s\n' "$1" "(on disk, not committed)"
   else
     printf '  [ ] %s\n' "$1"
   fi
@@ -58,8 +85,8 @@ case "$slug" in
     emit "SDLC loop: on the default branch ($slug) — no work stream checked out.
 
 Next: Stage 1 (Plan). Pick a short kebab-case slug for the initiative, run
-git checkout -b <slug>, then fill intent/<slug>.md from intent/TEMPLATE.md.
-That one slug names the branch and every downstream artifact.
+git checkout -b <slug>, then write intent/<slug>.md from intent/TEMPLATE.md.
+Full instructions: $STAGES/1-plan.md
 
 $HOWTO"
     ;;
@@ -73,48 +100,79 @@ if [ ! -f "$intent" ] && [ ! -f "$spec" ] && [ ! -f "$plan" ] && [ ! -d intent ]
   exit 0  # not a skeleton layout (or the dirs were removed) — say nothing
 fi
 
+# Has code landed since the plan was committed? Dated from the commit that
+# ADDED the plan, not the last one to touch it — a build session is told to
+# amend the plan in the same commit as the code it drifted from, and dating
+# from that would hide the very code it's meant to detect.
+code=""
+if committed "$plan"; then
+  plan_commit=$(git log --diff-filter=A --format=%H -1 -- "$plan" 2>/dev/null || true)
+  if [ -n "$plan_commit" ]; then
+    code=$(git log --format=%H "$plan_commit"..HEAD -- . \
+      ':(exclude)intent' ':(exclude)design' ':(exclude)plans' 2>/dev/null || true)
+  fi
+fi
+
 chain=$(
   checklist_line "$intent"
   checklist_line "$spec"
   checklist_line "$plan"
+  if [ -n "$code" ]; then
+    printf '  [x] code committed\n'
+  else
+    printf '  [ ] code committed\n'
+  fi
 )
 
-if [ ! -f "$intent" ]; then
+# One imperative per state. The reasoning behind each lives in the sdlc skill,
+# which HOWTO points at — repeating it here is what lets the two drift apart.
+if ! committed "$intent" && [ -f "$intent" ]; then
+  stage="Stage 1 (Plan) — intent written, not committed."
+  next="commit $intent as status: draft. That commit ends the stage."
+elif ! committed "$intent"; then
   stage="Stage 1 (Plan) — not started."
-  next="copy intent/TEMPLATE.md to $intent and fill it in with the user
-(Problem, Proposed outcome, Affected systems, Constraints, Open questions),
-then commit it. Committing an approved intent is what unlocks Stage 2."
-elif [ "$(status_of "$intent")" != "approved" ]; then
-  stage="Stage 1 (Plan) — intent drafted, not yet approved."
-  next="the product owner reviews $intent and signs off. Once its frontmatter
-reads status: approved and that is committed, Stage 2 (Design) is unlocked.
-Don't draft the spec before then."
-elif [ ! -f "$spec" ]; then
-  stage="Stage 2 (Design) — intent approved, spec not started."
-  next="draft $spec from the approved intent using design/TEMPLATE.spec.md.
-Policy skills in .claude/skills/ apply here — record anything they raise under
-Policy flags. Review with the user, then commit."
-elif [ "$(status_of "$spec")" != "approved" ]; then
-  stage="Stage 2 (Design) — spec drafted, not yet approved."
-  next="resolve the spec's Policy flags with the relevant policy owner, get
-product-owner approval, then set $spec to status: approved and commit. That
-unlocks Stage 3 (Build)."
-elif [ ! -f "$plan" ]; then
+  next="write $intent from intent/TEMPLATE.md, interviewing the user one
+question at a time, then commit it. That commit ends the stage. Full
+instructions: $STAGES/1-plan.md"
+elif ! approved "$intent"; then
+  stage="Stage 1 (Plan) — intent committed, waiting on product-owner approval."
+  next="nothing to build yet. Stage 2 (Design) opens once a commit sets $intent
+to status: approved. Don't draft the spec before then.$(uncommitted_approval "$intent")"
+elif ! committed "$spec" && [ -f "$spec" ]; then
+  stage="Stage 2 (Design) — spec written, not committed."
+  next="commit $spec as status: draft. That commit ends the stage. Full
+instructions: $STAGES/2-design.md"
+elif ! committed "$spec"; then
+  stage="Stage 2 (Design) — intent approved, no spec yet."
+  next="draft $spec from $intent using design/TEMPLATE.spec.md, then commit
+it. Full instructions: $STAGES/2-design.md"
+elif ! approved "$spec"; then
+  stage="Stage 2 (Design) — spec committed, waiting on approval."
+  next="nothing to build yet. Policy flags go to their owners; Stage 3 (Build)
+opens once a commit sets $spec to status: approved.$(uncommitted_approval "$spec")"
+elif ! committed "$plan" && [ -f "$plan" ]; then
+  stage="Stage 3 (Build) — plan written, not committed."
+  next="commit $plan BEFORE any code. That commit ends this session. Full
+instructions: $STAGES/3-build.md"
+elif ! committed "$plan"; then
   stage="Stage 3 (Build) — spec approved, no plan yet."
-  next="start in plan mode against $spec and iterate until an engineer who has
-never seen the conversation could implement from the plan alone. Commit it as
-$plan BEFORE writing any code — that's the audit trail Stage 5 review checks
-the diff against."
+  next="call the EnterPlanMode tool now, as your first action. Read $spec and
+iterate, then write $plan from plans/TEMPLATE.plan.md and commit it BEFORE any
+code. Full instructions: $STAGES/3-build.md"
 elif [ -n "$(git status --porcelain 2>/dev/null)" ]; then
-  stage="Stage 3 (Build) → Stage 4 (Test) — plan committed, work in progress."
-  next="finish the plan's work order, then run the verification command from
-CLAUDE.md and hand the change to the verifier subagent before any human sees
-it. If implementation departed from the plan, update $plan in the same commit."
+  stage="Stage 3 (Build) — plan committed, work in progress."
+  next="finish $plan's work order and commit it; if the implementation departed
+from the plan, update $plan in the same commit. That commit ends the stage.
+Full instructions: $STAGES/3-build.md"
+elif [ -z "$code" ]; then
+  stage="Stage 3 (Build) — plan committed, no code yet."
+  next="implement $plan's work order and commit it — simple-code applies from
+the first line. That commit is this session's whole job and ends the stage.
+Full instructions: $STAGES/3-build.md"
 else
-  stage="Stage 3 (Build) — plan committed, working tree clean."
-  next="implement $plan's work order, or if it's already implemented and
-committed, move to Stage 5: run /review (REVIEW.md's four passes), push,
-and open a PR for human approval."
+  stage="Stage 4 (Test) — code committed since the plan."
+  next="read $STAGES/4-test.md and run its steps in order; it runs straight on
+into $STAGES/5-deploy.md in this same session."
 fi
 
 emit "SDLC loop — branch: $slug
