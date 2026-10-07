@@ -15,11 +15,24 @@ against.
 
 1. ...
 2. ...
+- Failure cases: `<each way a new boundary can fail, and what the caller
+  gets — see the error-handling skill; delete if nothing new can fail>`
 
 ## Design
 
 How will it work? Interfaces, data flow, key decisions and why. Call out
 alternatives considered and rejected, briefly.
+
+## Contracts
+
+- Errors: `<the error contract, if this spec decides it — see the
+  error-handling skill>`
+- Logging: `<the logging contract, decided with it — see the logging skill>`
+
+Delete this section unless `CLAUDE.md` still says these are not decided and
+this spec adds the project's first boundary (an endpoint, a CLI command,
+external I/O). A contract decided here binds every later change, so list it
+under Policy flags too.
 
 ## Policy flags
 
