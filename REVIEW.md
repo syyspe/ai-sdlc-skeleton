@@ -10,8 +10,16 @@ This file defines the review passes Claude runs on every pull request (Stage
 Every PR gets four passes, in this order:
 
 1. **Bugs** — logic errors, regressions, edge cases, off-by-ones, unhandled
-   error paths. Cross-reference against `plans/<branch>.plan.md` if one
-   exists: does the diff match what was planned?
+   error paths. Check errors against the `Errors:` contract in `CLAUDE.md`
+   and `.claude/skills/error-handling/SKILL.md`: input a caller controls
+   that can produce a 5xx or crash, a swallowed or double-logged error, a
+   failure response shaped outside the contract, a new boundary without
+   failure-case tests. Check logging against the `Logging:` contract and
+   `.claude/skills/logging/SKILL.md`: a leftover `print`/`console.log`, a
+   secret, body or personal data in a log line, a new request, command or
+   job with no finishing log line. Cross-reference against
+   `plans/<branch>.plan.md` if one exists: does the diff match what was
+   planned?
 2. **Security** — injection risks, authentication/authorization gaps, PII or
    secret exposure, unsafe deserialization, missing input validation. Apply
    any relevant skill in `.claude/skills/` (e.g. `secure-api-review`).

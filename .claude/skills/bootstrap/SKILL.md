@@ -210,6 +210,10 @@ content for these to seem thorough:
 
 - `bands.yaml` (Stage 6 monitoring thresholds — needs live metrics)
 - `evals/examples/*.json` (Stage 4 — needs a real incident to regress-test)
+- `CLAUDE.md`'s `Errors:` and `Logging:` lines — they aren't placeholders.
+  The first spec that adds a boundary decides both contracts, per the
+  `error-handling` and `logging` skills, once there is real code to fit
+  them to
 - the `intent/`, `design/`, `plans/` **templates** themselves — Step 10
   copies one of them for the first initiative, but the templates stay
   exactly as they are

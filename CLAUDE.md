@@ -32,6 +32,11 @@ Expected healthy output for tests: `<e.g. "N passed, 0 failed">`
 - Dependency policy: `<e.g. "no new dependencies without approval">`
 - `<other hard rules — e.g. "money is always Decimal, never float">`
 - `<testing convention — e.g. "every endpoint needs an integration test">`
+- Errors: not decided yet. The first spec that adds a boundary (an endpoint,
+  a CLI command, external I/O) decides the contract and replaces this line;
+  see the `error-handling` skill.
+- Logging: not decided yet. Decided in the same spec as `Errors:`, and
+  replaces this line; see the `logging` skill.
 
 ## Architecture
 
@@ -56,7 +61,9 @@ Expected healthy output for tests: `<e.g. "N passed, 0 failed">`
   file you touch while writing or editing code, unconditionally — its
   limits and no-cleverness/no-defensive-code rules are active from the
   first line, not a checklist for after `verifier` or review catches
-  something.
+  something. `error-handling` applies the same way to any code that can
+  fail, and the `Errors:` line above is the contract it keeps consistent;
+  `logging` likewise for anything that logs, against the `Logging:` line.
 - Hooks in `.claude/hooks/` are hard guardrails, not suggestions — if one
   blocks you, that's a signal to ask a human, not to work around it.
 - The default branch is PR-only. Never push to it directly, however small
