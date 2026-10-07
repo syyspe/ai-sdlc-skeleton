@@ -137,8 +137,8 @@ don't start a stage whose upstream artifact still says `status: draft`.
    which checks the diff against the plan with fresh context.
    *Unlock:* verification passes and `verifier` reports PASS.
 6. **Stage 5.** Push, open a PR. `REVIEW.md`'s four passes apply here — run
-   `/code-review` yourself before or instead of waiting on the GitHub Action
-   if you want the feedback sooner.
+   `/review` yourself before or instead of waiting on the GitHub Action if
+   you want the feedback sooner.
    *Unlock:* a human approves the merge. Claude's findings are advisory.
 7. **Stage 6.** Merge. If this was a bug fix, the regression test that proved
    it belongs in `evals/` too — see `evals/README.md`. From here, a breached

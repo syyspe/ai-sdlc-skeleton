@@ -1,9 +1,36 @@
 # Review Policy
 
 This file defines the review passes Claude runs on every pull request (Stage
-5 of the AI-native SDLC). It's read by whatever review automation you wire up
-(a `claude -p` job, `claude-code-action`, or an interactive `/code-review`)
-— keep it authoritative and specific rather than generic.
+5 of the AI-native SDLC). Keep it authoritative and specific rather than
+generic.
+
+## What actually reads it
+
+`.github/workflows/claude-review.yml` does — its prompt names this file, so
+the CI review on a PR runs the four passes below as a single pass, no
+subagent fan-out. Locally, `/review` (`.claude/skills/review/`) does the same
+thing, on demand, before the branch is pushed — it's the default for Stage 5.
+The built-in `/code-review` command does **not** read this file: it has
+fixed passes of its own (correctness bugs, plus cleanup for reuse,
+simplification and efficiency, plus one conventions angle that checks the
+diff against `CLAUDE.md`), and above `low`/`medium` effort it fans out into
+several parallel subagents — useful for an occasional deeper pass, expensive
+as a default. It also reviews only the diff — `git diff @{upstream}...HEAD`
+plus uncommitted changes — unless it's handed a path, a branch, or a PR
+number.
+
+So in a local Stage 5, `/review` covers all four passes below in one shot.
+`/code-review` never runs unasked, however warranted a deeper pass looks —
+"this diff seems high-stakes" is a reason to ask the user, not to invoke it.
+If they do want it run (instead of, or in addition to, `/review`), three of
+the four passes below then arrive by other routes: `verifier` covers the
+plan half of **Compliance**, `/code-review` covers **Bugs** and most of
+**Simplicity**, and **Security** needs `/security-review` run explicitly.
+The spec half of **Compliance** has no automation on that route — it's the
+human reviewer's job when they read the PR. Anything here that has to bind a
+`/code-review` pass (an exclusion, a hard limit) must be restated in
+`CLAUDE.md`, the only policy file it sees — `/review` reads this file
+directly, so it needs nothing restated.
 
 ## Passes
 

@@ -24,5 +24,5 @@ departs from the plan, update the plan in the same commit.
 
 **Next:** Stage 4 (Test) — run the verification command from `CLAUDE.md`,
 then hand the change to the `verifier` subagent, which re-checks the diff
-against this plan with fresh context. Then Stage 5: `/code-review`, push,
+against this plan with fresh context. Then Stage 5: `/review`, push,
 PR. Run `/sdlc` if you're unsure where a branch stands.

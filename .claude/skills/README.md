@@ -7,9 +7,11 @@ likely, unlike hooks (`.claude/hooks/`) which make violations impossible.
 
 `secure-api-review/`, `simple-code/`, `error-handling/` and `logging/` are
 filled-out examples of that.
-Three others aren't policy — they drive the process itself: `sdlc/` (`/sdlc`
+Four others aren't policy — they drive the process itself: `sdlc/` (`/sdlc`
 — which stage the branch is in and what's next), `bootstrap/` (one-time
-project setup), and `worktree/` (parallel work streams).
+project setup), `worktree/` (parallel work streams), and `review/`
+(`/review` — Stage 5's default local pass against `REVIEW.md`, run inline
+instead of fanning out into subagents).
 
 Add more folders following the same shape — one directory per skill,
 containing a `SKILL.md` with frontmatter describing when it triggers.
