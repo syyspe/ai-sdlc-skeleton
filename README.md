@@ -16,20 +16,9 @@ intent.md  →  spec.md  →  plan.md  →  PR + tests  →  deploy  →  monito
 ```
 
 Each stage ends by committing its artifact, and that commit is what starts
-the next one:
-
-| Stage | Artifact | Done when | Which unlocks |
-|---|---|---|---|
-| 1. Plan | `intent/<slug>.md` | product owner sets `status: approved` | Design |
-| 2. Design | `design/<slug>.spec.md` | policy flags resolved, product owner sets `status: approved` | Build |
-| 3. Build | `plans/<slug>.plan.md`, then code | plan committed **before** code, work order done | Test |
-| 4. Test | verification output, `verifier` verdict | the command in `CLAUDE.md` passes and `verifier` says PASS | Deploy |
-| 5. Deploy | PR reviewed per `REVIEW.md` | a human approves and merges | Maintain |
-| 6. Maintain | `bands.yaml` breach → new `intent/*.md` | the breach is triaged | Plan, again |
-
-You never have to hold that in your head. Every session starts by telling
-you which stage the current branch is in and what the next action is, and
-**`/sdlc`** re-answers that any time you ask.
+the next one. Every session opens by telling you which stage the current
+branch is in and what's next; **`/sdlc`** re-answers that any time you ask.
+The stage table and rules are in `.claude/skills/sdlc/SKILL.md`.
 
 ## Prerequisites
 
@@ -109,44 +98,15 @@ above to work: `gh repo edit <owner>/<repo> --template`, or Settings →
 General → check "Template repository". One-time setup, done once this repo
 is pushed.
 
-## Starting your first piece of work
+## Working on something
 
-The short version: **run `/sdlc`** and Claude tells you where the current
-branch stands and what to do next, at any point in the cycle. The long
-version is below, once, so you know what it's driving.
-
-One slug threads through everything — pick a short kebab-case name for the
-initiative (e.g. `csv-export`) and reuse it as the branch name and every
-artifact's filename. Each step's *unlock* is what makes the next step legal;
-don't start a stage whose upstream artifact still says `status: draft`.
-
-1. `git checkout -b <slug>` from the default branch.
-2. **Stage 1.** Copy `intent/TEMPLATE.md` → `intent/<slug>.md`, fill it in
-   (talk it through with Claude if useful), commit.
-   *Unlock:* a product owner reviews it and sets `status: approved`.
-3. **Stage 2.** Ask Claude to draft `design/<slug>.spec.md` from the approved
-   intent. Policy skills apply here — anything they raise lands under **Policy
-   flags** and goes to that policy's owner. Review, adjust, commit.
-   *Unlock:* flags resolved and the product owner sets `status: approved`.
-4. **Stage 3.** Start a Claude Code session in **plan mode** referencing the
-   spec and iterate until the plan's right — see `plans/README.md` for the
-   exact steps — then commit it as `plans/<slug>.plan.md`.
-   *Unlock:* the plan is committed. Nothing gets implemented before that.
-5. **Stages 3–4.** Switch to auto mode, implement, and verify against
-   `CLAUDE.md`'s commands. Then hand the change to the `verifier` subagent,
-   which checks the diff against the plan with fresh context.
-   *Unlock:* verification passes and `verifier` reports PASS.
-6. **Stage 5.** Push, open a PR. `REVIEW.md`'s four passes apply here — run
-   `/review` yourself before or instead of waiting on the GitHub Action if
-   you want the feedback sooner.
-   *Unlock:* a human approves the merge. Claude's findings are advisory.
-7. **Stage 6.** Merge. If this was a bug fix, the regression test that proved
-   it belongs in `evals/` too — see `evals/README.md`. From here, a breached
-   control band in `bands.yaml` writes the next `intent/*.md` on its own.
-
-Working on more than one of these at a time? See the `worktree` skill
-(`.claude/skills/worktree/SKILL.md`) instead of switching branches in
-place.
+Run `/sdlc` and Claude tells you where the current branch stands and what to
+do next. The instructions for each stage are in `.claude/skills/sdlc/stages/`,
+and the reasoning behind the process — one stage per session, approvals read
+from what's committed, which model for which stage — is in
+`.claude/skills/sdlc/session-economy.md`. Working on more than one thing at a
+time? Use the `worktree` skill (`.claude/skills/worktree/SKILL.md`) instead of
+switching branches in place.
 
 ## Repository layout
 
@@ -157,9 +117,9 @@ place.
 | `plans/` | 3. Build | Implementation plans (usually one per branch/PR, committed for audit trail) |
 | `CLAUDE.md` | 3. Build | Institutional knowledge Claude reads every session |
 | `.claude/skills/` | 2–3 | Triggered policy skills (brand, security, compliance, UX) |
-| `.claude/skills/sdlc/` | all | `/sdlc` — reports which stage the branch is in and drives the next handoff |
+| `.claude/skills/sdlc/` | all | `/sdlc` — which stage the branch is in and what's next; `stages/` holds one file of instructions per stage |
 | `.claude/hooks/` | 3, 5 | Deterministic guardrails and approval gates |
-| `.claude/agents/` | 3 | Subagents for repeated tasks (verification, review, research) |
+| `.claude/agents/` | 4 | Subagents for repeated tasks (verification, review, research) |
 | `.claude/settings.json` | 3, 5 | Wires hooks into tool events |
 | `evals/` | 4. Test | Regression tests for agent configuration itself |
 | `.github/workflows/agent-evals.yml` | 4, 5 | CI that runs evals when `CLAUDE.md`/`.claude/` change |

@@ -32,6 +32,5 @@ What don't we know yet that Stage 2 (Design) needs to resolve?
 
 **Product owner sign-off:** `<name>` — `<date>`
 
-**Next stage:** once that sign-off is in and `status:` above reads
-`approved`, commit — that unlocks Stage 2 (Design), where Claude drafts
-`design/<slug>.spec.md` from this file.
+**Next stage:** once signed off, set `status: approved` above and commit —
+that commit is the approval. Then run `/sdlc`.
